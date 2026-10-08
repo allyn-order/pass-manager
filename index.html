@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Pass Manager">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16181c" media="(prefers-color-scheme: dark)">
+  <title>Pass Manager</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 暗号表がまだない -->
+<section id="view-setup" class="view" hidden>
+  <div class="center">
+    <h1>Pass Manager</h1>
+    <p class="lead">最初に、PC版の暗号表をQRコードで読み込みます。</p>
+    <ol class="steps">
+      <li>PC版でロックを解除する</li>
+      <li>メニュー「ファイル」→「iPhoneへ：暗号表をQRコードで表示」</li>
+      <li>下のボタンを押し、表示されたQRコードを順番に読み取る</li>
+    </ol>
+    <button class="primary" id="setup-scan">暗号表を読み取る</button>
+    <p class="note" id="setup-standalone">
+      ホーム画面に追加してから使ってください（共有ボタン →「ホーム画面に追加」）。<br>
+      Safari のまま使うと、しばらく開かないうちにデータが消えることがあります。
+    </p>
+  </div>
+</section>
+
+<!-- ロック画面 -->
+<section id="view-lock" class="view" hidden>
+  <form class="center" id="lock-form" autocomplete="off">
+    <h1>Pass Manager</h1>
+    <label for="master" class="field-label">マスターパスワード</label>
+    <input type="password" id="master" autocomplete="current-password" autocapitalize="off"
+           autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <button class="primary" type="submit" id="unlock-btn">ロック解除</button>
+    <p class="note" id="lock-status"></p>
+  </form>
+</section>
+
+<!-- メイン -->
+<section id="view-main" class="view" hidden>
+  <header class="bar">
+    <button class="icon-btn" id="btn-settings" aria-label="設定">設定</button>
+    <span class="bar-title" id="check-label"></span>
+    <button class="icon-btn" id="btn-lock" aria-label="ロック">ロック</button>
+  </header>
+  <div class="search-wrap">
+    <input type="search" id="search" placeholder="検索（サイト名・ドメイン・メモ）"
+           autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <p class="count" id="count"></p>
+  <ul class="list" id="list"></ul>
+  <p class="empty" id="empty" hidden>サイトがありません。右下の「＋」から追加するか、<br>設定からサイト一覧を読み込んでください。</p>
+  <button class="fab" id="btn-add" aria-label="追加">＋</button>
+</section>
+
+<!-- パスワード表示 -->
+<dialog id="dlg-detail" class="sheet">
+  <div class="sheet-head">
+    <div>
+      <h2 id="detail-site"></h2>
+      <p class="sub" id="detail-domain"></p>
+    </div>
+    <button class="text-btn" data-close>閉じる</button>
+  </div>
+  <div class="pw-box">
+    <code id="detail-pw">••••••••••••</code>
+  </div>
+  <div class="row">
+    <button id="detail-show">表示</button>
+    <button class="primary" id="detail-copy">コピー</button>
+  </div>
+  <p class="sub" id="detail-meta"></p>
+  <p class="sub" id="detail-memo"></p>
+  <div class="row secondary">
+    <button id="detail-edit">編集</button>
+    <button id="detail-bump">世代 +1</button>
+    <button class="danger" id="detail-delete">削除</button>
+  </div>
+</dialog>
+
+<!-- 追加・編集 -->
+<dialog id="dlg-edit" class="sheet">
+  <form id="edit-form" method="dialog" autocomplete="off">
+    <div class="sheet-head">
+      <h2 id="edit-title">サイトの追加</h2>
+      <button class="text-btn" type="button" data-close>キャンセル</button>
+    </div>
+    <label class="field-label" for="f-site">サイト名 *</label>
+    <input id="f-site" required autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Google">
+    <label class="field-label" for="f-domain">ドメイン</label>
+    <input id="f-domain" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="google.com">
+    <div class="grid2">
+      <div>
+        <label class="field-label" for="f-length">文字数 *</label>
+        <input id="f-length" type="number" inputmode="numeric" min="8" max="64" value="16" required>
+      </div>
+      <div>
+        <label class="field-label" for="f-generation">世代 *</label>
+        <input id="f-generation" type="number" inputmode="numeric" min="1" max="999" value="1" required>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="f-use-symbols" checked> 記号を使う *</label>
+    <div class="row tight">
+      <input id="f-symbols" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button type="button" id="f-symbols-default">既定</button>
+    </div>
+    <label class="field-label" for="f-memo">メモ</label>
+    <input id="f-memo">
+    <p class="note">* の項目を変えるとパスワードが変わります（サイト名の大文字・小文字は区別しません）</p>
+    <button class="primary wide" type="submit">保存</button>
+  </form>
+</dialog>
+
+<!-- 設定 -->
+<dialog id="dlg-settings" class="sheet">
+  <div class="sheet-head">
+    <h2>設定</h2>
+    <button class="text-btn" data-close>閉じる</button>
+  </div>
+  <p class="sub" id="settings-check"></p>
+  <h3>サイト一覧</h3>
+  <button class="wide" id="s-scan-sites">PCからQRコードで読み込む</button>
+  <button class="wide" id="s-export">ファイルに書き出す（PCへ渡す）</button>
+  <label class="wide button-like" for="s-import-file">ファイルから読み込む</label>
+  <input type="file" id="s-import-file" accept=".json,application/json" hidden>
+  <h3>暗号表</h3>
+  <button class="wide" id="s-rescan-table">暗号表を読み取り直す</button>
+  <button class="wide danger" id="s-reset">このiPhoneのデータをすべて消す</button>
+  <p class="note">暗号表とサイト一覧はこのiPhoneの中にだけ保存され、外部には送信されません。</p>
+</dialog>
+
+<!-- QR読み取り -->
+<dialog id="dlg-scan" class="scan">
+  <div class="scan-inner">
+    <p class="scan-title" id="scan-title">QRコードを読み取り中</p>
+    <div class="video-wrap">
+      <video id="scan-video" playsinline muted></video>
+      <div class="frame"></div>
+    </div>
+    <div class="dots" id="scan-dots"></div>
+    <p class="scan-status" id="scan-status">PC画面のQRコードにカメラを向けてください</p>
+    <button id="scan-cancel">キャンセル</button>
+  </div>
+  <canvas id="scan-canvas" hidden></canvas>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="jsQR.js"></script>
+<script src="pm-core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
