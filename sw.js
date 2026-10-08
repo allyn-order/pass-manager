@@ -1,6 +1,6 @@
 // オフラインでも開けるようにファイルを保存しておく。
 // ファイルを更新したら CACHE の番号を上げること（上げないと iPhone 側が古いまま）。
-const CACHE = "pm-v1";
+const CACHE = "pm-v2";
 const FILES = [
   "./",
   "./index.html",

@@ -58,7 +58,7 @@
     <button class="icon-btn" id="btn-lock" aria-label="ロック">ロック</button>
   </header>
   <div class="search-wrap">
-    <input type="search" id="search" placeholder="検索（サイト名・ドメイン・メモ）"
+    <input type="search" id="search" placeholder="検索（サイト名・ドメイン・ID・メール・メモ）"
            autocapitalize="off" autocorrect="off" spellcheck="false">
   </div>
   <p class="count" id="count"></p>
@@ -82,6 +82,18 @@
   <div class="row">
     <button id="detail-show">表示</button>
     <button class="primary" id="detail-copy">コピー</button>
+  </div>
+  <div class="account" id="detail-account">
+    <div class="account-row" id="detail-user-id-row">
+      <span class="account-label">ユーザーID</span>
+      <span class="account-value" id="detail-user-id"></span>
+      <button class="text-btn" data-copy="detail-user-id">コピー</button>
+    </div>
+    <div class="account-row" id="detail-email-row">
+      <span class="account-label">メール</span>
+      <span class="account-value" id="detail-email"></span>
+      <button class="text-btn" data-copy="detail-email">コピー</button>
+    </div>
   </div>
   <p class="sub" id="detail-meta"></p>
   <p class="sub" id="detail-memo"></p>
@@ -118,6 +130,10 @@
       <input id="f-symbols" autocapitalize="off" autocorrect="off" spellcheck="false">
       <button type="button" id="f-symbols-default">既定</button>
     </div>
+    <label class="field-label" for="f-user-id">登録ユーザーID</label>
+    <input id="f-user-id" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label class="field-label" for="f-email">登録メールアドレス</label>
+    <input id="f-email" type="email" inputmode="email" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     <label class="field-label" for="f-memo">メモ</label>
     <input id="f-memo">
     <p class="note">* の項目を変えるとパスワードが変わります（サイト名の大文字・小文字は区別しません）</p>

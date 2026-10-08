@@ -147,7 +147,7 @@
     list.replaceChildren();
     let shown = 0;
     data.sites.forEach((s, i) => {
-      const hay = [s.site, s.domain, s.memo].join(" ").toLowerCase();
+      const hay = [s.site, s.domain, s.user_id, s.email, s.memo].join(" ").toLowerCase();
       if (q && !hay.includes(q)) return;
       shown++;
       const li = document.createElement("li");
@@ -156,7 +156,7 @@
       name.textContent = s.site;
       const meta = document.createElement("div");
       meta.className = "meta";
-      meta.textContent = [s.domain, s.memo].filter(Boolean).join("　") || " ";
+      meta.textContent = [s.domain, s.user_id || s.email, s.memo].filter(Boolean).join("　") || " ";
       li.append(name, meta);
       li.addEventListener("click", () => openDetail(i));
       list.append(li);
@@ -186,6 +186,11 @@
     $("detail-domain").textContent = s.domain;
     $("detail-meta").textContent = `${s.length}文字・記号 ${s.symbols || "なし"}・世代 ${s.generation}`;
     $("detail-memo").textContent = s.memo;
+    $("detail-user-id").textContent = s.user_id ?? "";
+    $("detail-email").textContent = s.email ?? "";
+    $("detail-user-id-row").hidden = !s.user_id;
+    $("detail-email-row").hidden = !s.email;
+    $("detail-account").hidden = !s.user_id && !s.email;
     setPwDisplay();
     if (!$("dlg-detail").open) $("dlg-detail").showModal();
     const pw = await C.generatePassword(masterKey, s.site, s.length, s.symbols, s.generation);
@@ -213,6 +218,17 @@
       toast("コピーできませんでした。表示した文字を長押ししてコピーしてください");
     }
   });
+
+  for (const btn of document.querySelectorAll("[data-copy]")) {
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText($(btn.dataset.copy).textContent);
+        toast("コピーしました");
+      } catch {
+        toast("コピーできませんでした");
+      }
+    });
+  }
 
   $("detail-bump").addEventListener("click", () => {
     const s = data.sites[current.index];
@@ -252,6 +268,8 @@
     $("f-generation").value = s?.generation ?? 1;
     $("f-use-symbols").checked = s ? Boolean(s.symbols) : true;
     $("f-symbols").value = s?.symbols || C.DEFAULT_SYMBOLS;
+    $("f-user-id").value = s?.user_id ?? "";
+    $("f-email").value = s?.email ?? "";
     $("f-memo").value = s?.memo ?? "";
     syncSymbolsField();
     $("dlg-edit").showModal();
@@ -273,7 +291,7 @@
       entry = C.cleanEntry({
         site: $("f-site").value, domain: $("f-domain").value,
         length: $("f-length").value, symbols, generation: $("f-generation").value,
-        memo: $("f-memo").value,
+        user_id: $("f-user-id").value, email: $("f-email").value, memo: $("f-memo").value,
       });
     } catch {
       return alert(`サイト名を入力し、文字数は ${C.MIN_LENGTH}〜${C.MAX_LENGTH}、世代は1以上にしてください`);

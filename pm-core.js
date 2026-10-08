@@ -161,6 +161,8 @@
       length,
       symbols: normalizeSymbols(String(entry.symbols ?? "")),
       generation,
+      user_id: String(entry.user_id ?? "").trim(),
+      email: String(entry.email ?? "").trim(),
       memo: String(entry.memo ?? "").trim(),
     };
   }
@@ -185,7 +187,7 @@
         continue;
       }
       const old = merged[index.get(key)];
-      if (Object.keys(entry).every((k) => old[k] === entry[k])) continue;
+      if (Object.keys(entry).every((k) => (old[k] ?? "") === entry[k])) continue;
       if (PASSWORD_KEYS.some((k) => old[k] !== entry[k])) pwChanged.push(entry.site);
       else changed.push(entry.site);
       merged[index.get(key)] = entry;
